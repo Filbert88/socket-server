@@ -1,25 +1,20 @@
-// Import necessary libraries
 const http = require('http');
 const { Server } = require('socket.io');
 
-// Define the port to run the server on
 const PORT = process.env.PORT || 3000;
 
-// Create a basic HTTP server
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Socket.IO server');
 });
 
-// Initialize Socket.IO with the HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "*",  // Be sure to restrict this in production!
+    origin: "*", 
     methods: ["GET", "POST"]
   }
 });
 
-// Handle connection events and set up your Socket.IO logic
 io.on('connection', (socket) => {
   console.log("A user connected");
 
@@ -39,12 +34,18 @@ io.on('connection', (socket) => {
     console.log(`Message emitted to rooms with appID: ${data.receiverAppID}`);
   });
 
+  socket.on("unsendMessage", (data) => {
+    console.log(`Unsending message with ID: ${data.messageId}`);
+    io.to(data.receiverAppID).emit('messageUnsent', {
+      messageId: data.messageId
+    });
+  })
+
   socket.on("disconnect", () => {
     console.log("A user disconnected");
   });
 });
 
-// Start the server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
