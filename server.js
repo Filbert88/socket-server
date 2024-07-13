@@ -30,15 +30,24 @@ io.on('connection', (socket) => {
       senderID: data.senderID,
       receiverID: data.receiverID,
       timestamp: new Date(),
+      messageId: data.messageId,
     });
     console.log(`Message emitted to rooms with appID: ${data.receiverAppID}`);
   });
 
   socket.on("unsendMessage", (data) => {
     console.log(`Unsending message with ID: ${data.messageId}`);
-    io.to(data.receiverAppID).emit('messageUnsent', {
-      messageId: data.messageId
+    io.to(data.senderAppID).emit("messageUnsent", {
+      messageId: data.messageId,
+      conversationId: data.conversationId,
     });
+    if (data.senderAppID !== data.receiverAppID) {
+      console.log("halo");
+      io.to(data.receiverAppID).emit("messageUnsent", {
+        messageId: data.messageId,
+        conversationId: data.conversationId,
+      });
+    }
   })
 
   socket.on("disconnect", () => {
